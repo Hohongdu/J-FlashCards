@@ -7,16 +7,21 @@ on:
 
 jobs:
   screenshot:
-    runs-on: macos-15
+    runs-on: macos-14
     timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Tuist
+      - name: Install Tuist (pinned)
         run: |
-          brew install tuist
+          # Homebrew tuist bottle may target a newer macOS; pin + self-install to stay compatible with macos-14 runner.
+          TUIST_VERSION="4.150.0"
+          curl -L -o tuist.zip "https://github.com/tuist/tuist/releases/download/${TUIST_VERSION}/tuist.zip"
+          unzip -q tuist.zip -d tuist-bin
+          sudo mv tuist-bin/tuist /usr/local/bin/tuist
+          chmod +x /usr/local/bin/tuist
           tuist version
 
       - name: Generate Xcode project
