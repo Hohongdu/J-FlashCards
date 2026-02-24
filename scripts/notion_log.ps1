@@ -8,6 +8,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Ensure UTF-8 so Korean doesn't get mangled
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $apiKeyPath = Join-Path $env:USERPROFILE '.config\notion\api_key'
 $NOTION_KEY = (Get-Content -Raw $apiKeyPath).Trim()
 
@@ -29,13 +32,14 @@ $payload = @{
 }
 
 $body = $payload | ConvertTo-Json -Depth 10
+$bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($body)
 
 $headers = @{
   Authorization = "Bearer $NOTION_KEY"
   'Notion-Version' = '2025-09-03'
-  'Content-Type' = 'application/json'
+  'Content-Type' = 'application/json; charset=utf-8'
 }
 
-$resp = Invoke-RestMethod -Method Post -Uri 'https://api.notion.com/v1/pages' -Headers $headers -Body $body
+$resp = Invoke-RestMethod -Method Post -Uri 'https://api.notion.com/v1/pages' -Headers $headers -Body $bodyBytes
 
 Write-Output $resp.id
