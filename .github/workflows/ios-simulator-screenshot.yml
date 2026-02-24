@@ -22,6 +22,10 @@ jobs:
 
       - name: Generate Xcode project
         run: |
+          echo "workspace=$GITHUB_WORKSPACE"
+          pwd
+          ls -la
+          ls -la Tuist || true
           tuist generate --no-open
 
       - name: Boot simulator
