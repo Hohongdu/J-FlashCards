@@ -7,43 +7,18 @@ on:
 
 jobs:
   screenshot:
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Tuist (compatible)
-        shell: bash
+      - name: Install Tuist
         run: |
-          set -euo pipefail
-          # Tuist binaries recently started targeting macOS 15; macos-14 runners will crash.
-          # We'll try a small list of older versions until one runs on macos-14.
-          versions=(
-            "4.140.0"
-            "4.130.0"
-            "4.120.0"
-            "4.110.0"
-            "4.100.0"
-            "4.90.0"
-          )
-
-          for v in "${versions[@]}"; do
-            echo "Trying Tuist ${v}..."
-            curl -fL -o tuist.zip "https://github.com/tuist/tuist/releases/download/${v}/tuist.zip"
-            rm -rf tuist-bin
-            unzip -q tuist.zip -d tuist-bin
-            sudo mv tuist-bin/tuist /usr/local/bin/tuist
-            chmod +x /usr/local/bin/tuist
-            if tuist version; then
-              echo "Using Tuist ${v}"
-              exit 0
-            fi
-          done
-
-          echo "Failed to install a Tuist version compatible with this runner." >&2
-          exit 1
+          sw_vers
+          brew install tuist
+          tuist version
 
       - name: Generate Xcode project
         run: |
