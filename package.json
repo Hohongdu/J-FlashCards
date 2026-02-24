@@ -1,0 +1,11 @@
+{
+  "name": "j-flashcards-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape:n5": "node scripts/scrape_jlptcode_n5.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}

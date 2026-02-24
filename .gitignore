@@ -17,3 +17,6 @@ Tuist/.build/
 # App data
 Data/*.json
 Data/*.csv
+
+# Node
+node_modules/
