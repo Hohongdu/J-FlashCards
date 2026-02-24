@@ -1,0 +1,64 @@
+name: iOS Simulator Screenshot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  screenshot:
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Tuist
+        run: |
+          curl -Ls https://install.tuist.io | bash
+          tuist version
+
+      - name: Generate Xcode project
+        run: |
+          tuist generate --no-open
+
+      - name: Boot simulator
+        run: |
+          xcrun simctl list devices available
+          DEVICE_NAME="iPhone 15"
+          UDID=$(xcrun simctl list devices available | grep -m 1 "$DEVICE_NAME" | sed -n 's/.*(\([0-9A-F-]*\)).*/\1/p')
+          echo "UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Build app (Simulator)
+        run: |
+          xcodebuild \
+            -project JFlashCards.xcodeproj \
+            -scheme JFlashCards \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=${UDID}" \
+            -derivedDataPath build \
+            build
+
+      - name: Install + launch + screenshot
+        run: |
+          APP_PATH="build/Build/Products/Debug-iphonesimulator/JFlashCards.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "App not found at $APP_PATH" && ls -R build/Build/Products || true
+            exit 1
+          fi
+
+          xcrun simctl install "$UDID" "$APP_PATH"
+          xcrun simctl launch "$UDID" com.yoonjaego.jflashcards || true
+          sleep 3
+
+          mkdir -p artifacts
+          xcrun simctl io "$UDID" screenshot "artifacts/home.png"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-screenshot
+          path: artifacts/*.png
